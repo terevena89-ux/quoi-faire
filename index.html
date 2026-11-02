@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Quoi faire ?</title>
+<meta name="theme-color" content="#171520">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  html, body { margin: 0; height: 100%; background: #f4f3f7; overflow: hidden; }
+  iframe { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; }
+  .wait { position: fixed; inset: 0; display: grid; place-items: center; font: 600 15px system-ui, sans-serif; color: #6f6a7d; }
+</style>
+</head>
+<body>
+<div class="wait" id="wait">Chargement…</div>
+<script>
+  /* ================= À RÉGLER ================= */
+  // Colle entre les guillemets l'adresse de ton appli Apps Script (celle qui finit par /exec).
+  const APP_URL = 'COLLE_ICI_TON_URL_EXEC';
+  // 'cadre' : l'appli s'affiche en plein écran dans cette page (recommandé).
+  // 'direct' : à utiliser seulement si l'appli reste blanche ou redemande sans cesse la connexion Google.
+  const MODE = 'cadre';
+  /* ============================================ */
+
+  // Lien reçu via le menu « Partager » d'Android : il arrive dans url, text ou title selon l'appli d'origine.
+  const p = new URLSearchParams(location.search);
+  const partage = [p.get('url'), p.get('text'), p.get('title')].filter(Boolean).join(' ');
+  const lien = (partage.match(/https?:\/\/\S+/) || [])[0];
+  const cible = APP_URL + (lien ? '?url=' + encodeURIComponent(lien) : '');
+  // Recharger l'appli ne doit pas rajouter le même lien une deuxième fois.
+  if (lien) history.replaceState(null, '', location.pathname);
+
+  if (!/^https:\/\/script\.google\.com\//.test(APP_URL)) {
+    document.getElementById('wait').textContent = 'Adresse de l’appli à régler dans index.html (APP_URL).';
+  } else if (MODE === 'direct') {
+    location.replace(cible);
+  } else {
+    const f = document.createElement('iframe');
+    f.title = 'Quoi faire ?';
+    f.allow = 'clipboard-write';
+    f.src = cible;
+    f.onload = () => document.getElementById('wait').remove();
+    document.body.appendChild(f);
+  }
+
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+</script>
+</body>
+</html>
